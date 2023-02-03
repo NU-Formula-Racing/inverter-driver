@@ -20,17 +20,26 @@ public:
 
     virtual void GetStatus();
 
-    virtual void RequestTorque();
+    virtual void RequestTorque(float percent);
 };
 
 class Inverter : public IInverter
 {
     Inverter(ICAN &can_interface_): can_interface_(can_interface_){};
 
-    virtual float GetMotorTemperature() override;
+    virtual float GetMotorTemperature(){};
+    virtual float GetInverterTemperature(){};
+    virtual float GetRPM(){};
+    virtual void GetStatus() override;
+    virtual void RequestTorque(float percent) override;
+    virtual void RXCallback();
 
     private:
+        float motor_temp;
+        float inverter_temp;
+        float rpm;
         ICAN &can_interface_;
+        // CAN addresses
         const uint16_t kTransmissionId = 0x210;
         const uint16_t kReceiveId = 0x180;
     
@@ -54,5 +63,12 @@ class Inverter : public IInverter
         CANSignal<uint8_t, 48, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> r_byte_6{};
         CANSignal<uint8_t, 56, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> r_byte_7{};
 
-        CANRXMessage<8> Receive_Msg{can_interface_, kReceiveId, r_regid, r_byte_1, r_byte_2, r_byte_3, r_byte_4, r_byte_5, r_byte_6, r_byte_7};
+        CANRXMessage<8> Receive_Msg{can_interface_, kReceiveId, RXCallback, r_regid, r_byte_1, r_byte_2, r_byte_3, r_byte_4, r_byte_5, r_byte_6, r_byte_7};
+
+        enum class regId:uint8_t 
+        {
+            TORQUE_SETPOI = 0x90,
+            T_MOTOR = 0x49,
+            T_IGBT = 0x4A,
+        };
 };
