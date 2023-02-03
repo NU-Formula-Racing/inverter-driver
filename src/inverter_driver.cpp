@@ -2,7 +2,7 @@
 
 void Inverter::RXCallback()
 {
-    float value = static_cast<uint8_t>(r_byte_1 | 
+    float value = static_cast<float>(r_byte_1 | 
                                         r_byte_2 << 8 | 
                                         r_byte_3 << 16 | 
                                         r_byte_4 << 24);
