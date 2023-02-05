@@ -39,9 +39,9 @@ public:
     void RequestRead(uint8_t freq);
 
 private:
-    uint32_t motor_temp;
-    uint32_t inverter_temp;
-    uint32_t rpm;
+    uint16_t motor_temp_adc;
+    uint16_t inverter_temp;
+    uint16_t rpm;
     ICAN &can_interface_;
     // CAN addresses
     const uint16_t kTransmissionId = 0x201;

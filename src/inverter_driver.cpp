@@ -2,19 +2,23 @@
 
 void Inverter::RXCallback()
 {
-    uint32_t value = static_cast<uint32_t>(r_byte_1 | r_byte_2 << 8 | r_byte_3 << 16 | r_byte_4 << 24);
+    uint32_t value_4b = static_cast<uint32_t>(r_byte_1 | r_byte_2 << 8 | r_byte_3 << 16 | r_byte_4 << 24);
+    uint16_t value_2b = static_cast<uint16_t>(r_byte_1 | r_byte_2 << 8);
     switch (r_regid)
     {
         case static_cast<uint8_t>(regId::T_MOTOR):
-            motor_temp = value;
+            motor_temp_adc = value_2b;
             break;
         case static_cast<uint8_t>(regId::T_IGBT):
-            inverter_temp = value;
+            inverter_temp = value_2b;
+            break;
+        case static_cast<uint8_t>(regId::SPEED_RPMMAX_INT):
+            rpm = value_2b;
             break;
     }
 };
 
-uint32_t Inverter::GetMotorTemperature() { return motor_temp; };
+uint32_t Inverter::GetMotorTemperature() { return motor_temp_adc; };
 
 uint32_t Inverter::GetInverterTemperature() { return inverter_temp; };
 
