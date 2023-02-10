@@ -34,14 +34,32 @@ Inverter inverter{can_bus};
 
 void requestTorque()
 {
-    Serial.println("Requesting 200 torque");
-    inverter.RequestTorque(0.006);
-    delay(2000);
-    Serial.println("Requesting 0 torque");
-    inverter.RequestTorque(0);
+    if (millis() / 2000 % 2)
+    {
+        // Serial.println("Requesting 200 torque");
+        inverter.RequestTorque(0.006);
+    }
+    else
+    {
+        // Serial.println("Requesting 0 torque");
+        inverter.RequestTorque(0);
+    }
 };
 
-void printTemperature() { Serial.println(inverter.GetMotorTemperature()); }
+void printEverything()
+{
+    Serial.print("Motor temp:");
+    Serial.print(inverter.GetMotorTemperature());
+    Serial.print("\n");
+
+    Serial.print("Inverter temp:");
+    Serial.print(inverter.GetInverterTemperature());
+    Serial.print("\n");
+
+    Serial.print("RPM:");
+    Serial.print(inverter.GetRPM());
+    Serial.print("\n");
+}
 
 void setup()
 {
@@ -49,9 +67,11 @@ void setup()
     Serial.println("Started");
     can_bus.Initialize(ICAN::BaudRate::kBaud1M);
     inverter.RequestMotorTemperature(200);
-    timer_group.AddTimer(5000, requestTorque);
-    timer_group.AddTimer(1000, printTemperature);
-    timer_group.AddTimer(10, [](){can_bus.Tick();});
+    inverter.RequestPowerStageTemp(200);
+    inverter.RequestRPM(200);
+    timer_group.AddTimer(1000, requestTorque);
+    timer_group.AddTimer(1000, printEverything);
+    timer_group.AddTimer(10, []() { can_bus.Tick(); });
 };
 
 void loop() { timer_group.Tick(millis()); };

@@ -10,25 +10,29 @@
 class IInverter
 {
 public:
-    virtual uint32_t GetMotorTemperature();
+    virtual float GetMotorTemperature();
 
-    virtual uint32_t GetInverterTemperature();
+    virtual float GetInverterTemperature();
 
-    virtual uint32_t GetRPM();
+    virtual float GetRPM();
 
     virtual void GetStatus();
 
     virtual void RequestTorque(float percent);
 };
 
+/**
+ * @brief Class for interacting with the Bamocar D3 Inverter
+ *
+ */
 class Inverter : public IInverter
 {
 public:
     Inverter(ICAN &can_interface_) : can_interface_(can_interface_){};
 
-    uint32_t GetMotorTemperature() override;
-    uint32_t GetInverterTemperature() override;
-    uint32_t GetRPM() override;
+    float GetMotorTemperature() override;
+    float GetInverterTemperature() override;
+    float GetRPM() override;
     void GetStatus() override;
     // set vals
     void RequestTorque(float percent) override;
@@ -36,17 +40,24 @@ public:
     void RequestMotorTemperature(uint8_t freq);
     void RequestPowerStageTemp(uint8_t freq);
     void RequestRPM(uint8_t freq);
+
+    /**
+     * @brief Sets the register ID to CAN Read, sets frequency byte, and clears other bytes
+     *
+     * @param freq
+     */
     void RequestRead(uint8_t freq);
 
 private:
     uint16_t motor_temp_adc;
-    uint16_t inverter_temp;
-    uint16_t rpm;
+    uint16_t inverter_temp_adc;
+    float rpm;
     ICAN &can_interface_;
     // CAN addresses
     const uint16_t kTransmissionId = 0x201;
     const uint16_t kReceiveId = 0x181;
 
+    // Register IDs from data sheet
     enum class regId : uint8_t
     {
         TORQUE_SETPOI = 0x90,
@@ -55,7 +66,7 @@ private:
         READ = 0x3D,
         VOUT = 0x8A,
         FUN_ERRCANCEL = 0x8E,
-        SPEED_RPMMAX_INT = 0xCE,
+        SPEED_ACTUAL = 0x30,
     };
 
     CANSignal<uint8_t, 0, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> t_regid{};

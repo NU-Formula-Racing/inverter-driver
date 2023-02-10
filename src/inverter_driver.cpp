@@ -1,5 +1,7 @@
 #include "inverter_driver.h"
 
+#include "temp_converters.h"
+
 void Inverter::RXCallback()
 {
     uint32_t value_4b = static_cast<uint32_t>(r_byte_1 | r_byte_2 << 8 | r_byte_3 << 16 | r_byte_4 << 24);
@@ -10,22 +12,23 @@ void Inverter::RXCallback()
             motor_temp_adc = value_2b;
             break;
         case static_cast<uint8_t>(regId::T_IGBT):
-            inverter_temp = value_2b;
+            inverter_temp_adc = value_2b;
             break;
-        case static_cast<uint8_t>(regId::SPEED_RPMMAX_INT):
-            rpm = value_2b;
+        case static_cast<uint8_t>(regId::SPEED_ACTUAL):
+            rpm = *reinterpret_cast<int16_t*>(&value_2b) / 32767.0f * 5500;
             break;
     }
 };
 
-uint32_t Inverter::GetMotorTemperature() { return motor_temp_adc; };
+float Inverter::GetMotorTemperature() { return Motor_Thermistor().ADCToTemperature(motor_temp_adc); };
 
-uint32_t Inverter::GetInverterTemperature() { return inverter_temp; };
+float Inverter::GetInverterTemperature() { return Inverter_Thermistor().ADCToTemperature(inverter_temp_adc); };
 
-uint32_t Inverter::GetRPM() { return rpm; };
+float Inverter::GetRPM() { return rpm; };
 
 void Inverter::GetStatus()
 {
+    // TODO: implement
     RequestRead(0);
     t_byte_1 = 0x40;
 };
@@ -44,7 +47,6 @@ void Inverter::RequestRead(uint8_t freq)
 {
     t_regid = static_cast<uint8_t>(regId::READ);
     t_byte_2 = freq;
-    // clearing the other bytes (clearing 1 may not be necessary)
     t_byte_1 = 0;
     t_byte_3 = 0;
     t_byte_4 = 0;
@@ -59,11 +61,12 @@ void Inverter::RequestMotorTemperature(uint8_t freq)
 void Inverter::RequestRPM(uint8_t freq)
 {
     RequestRead(freq);
-    t_byte_1 = static_cast<uint8_t>(regId::SPEED_RPMMAX_INT);
+    t_byte_1 = static_cast<uint8_t>(regId::SPEED_ACTUAL);
+    Transmission_Msg.EncodeAndSend();
 }
 void Inverter::RequestPowerStageTemp(uint8_t freq)
 {
     RequestRead(freq);
-    t_byte_1 = static_cast<uint8_t>(regId::T_MOTOR);
+    t_byte_1 = static_cast<uint8_t>(regId::T_IGBT);
     Transmission_Msg.EncodeAndSend();
 }
