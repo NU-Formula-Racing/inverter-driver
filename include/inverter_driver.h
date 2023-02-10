@@ -42,7 +42,8 @@ public:
     void RequestRPM(uint8_t freq);
 
     /**
-     * @brief Sets the register ID to CAN Read, sets frequency byte, and clears other bytes
+     * @brief Sets the register ID to CAN Read, sets frequency byte, and clears other bytes。 Frequency must be values
+     * 0-255, with 0 meaning a one-time request and 255 meaning stop requesting.
      *
      * @param freq
      */
