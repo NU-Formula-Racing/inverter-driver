@@ -18,7 +18,7 @@ public:
 
     virtual void GetStatus();
 
-    virtual void RequestTorque(float percent);
+    virtual void RequestTorque(uint16_t percent);
 };
 
 /**
@@ -35,7 +35,7 @@ public:
     float GetRPM() override;
     void GetStatus() override;
     // set vals
-    void RequestTorque(float percent) override;
+    void RequestTorque(uint16_t percent) override;
     void RXCallback();
     void RequestMotorTemperature(uint8_t freq);
     void RequestPowerStageTemp(uint8_t freq);

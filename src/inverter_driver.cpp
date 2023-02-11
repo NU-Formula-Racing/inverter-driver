@@ -33,9 +33,9 @@ void Inverter::GetStatus()
     t_byte_1 = 0x40;
 };
 
-void Inverter::RequestTorque(float percent)
+void Inverter::RequestTorque(uint16_t percent)
 {
-    int16_t value = percent * 200;
+    int16_t value = percent * 200 / 100;
     t_byte_1 = (value >> 0) & 0xFF;
     t_byte_2 = (value >> 8) & 0xFF;
     t_byte_3 = 0;
