@@ -35,7 +35,7 @@ void Inverter::GetStatus()
 
 void Inverter::RequestTorque(uint16_t percent)
 {
-    uint16_t value = percent * 200 / 100;
+    uint16_t value = static_cast<uint16_t>(percent * 200.0f / 100.0f);
     t_byte_1 = (value >> 0) & 0xFF;
     t_byte_2 = (value >> 8) & 0xFF;
     t_byte_3 = 0;
