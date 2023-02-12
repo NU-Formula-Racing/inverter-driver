@@ -4,10 +4,18 @@
 
 void Inverter::RXCallback()
 {
-    uint32_t value_4b = static_cast<uint32_t>(r_byte_1 | r_byte_2 << 8 | r_byte_3 << 16 | r_byte_4 << 24);
-    uint16_t value_2b = static_cast<uint16_t>(r_byte_1 | r_byte_2 << 8);
+    // maybe disable interrupts briefly
+
+    uint8_t b0 = (recv & 0x000000ff) << 24u;
+    uint8_t b1 = (recv & 0x0000ff00) << 8u;
+    uint8_t b2 = (recv & 0x00ff0000) >> 8u;
+    uint8_t b3 = (recv & 0xff000000) >> 24u;
+    uint32_t value_4b =  static_cast<uint32_t> (b0 | b1 | b2 | b3);
+    // uint32_t value_4b = static_cast<uint32_t> (recv>>24) & 0xFF | (recv>>16 & 0xFF) << 8 | (recv>>8 & 0xFF) << 16 | (recv & 0xFF) << 24;
+    uint16_t value_2b = static_cast<uint16_t> ((recv & 0xFF00) >> 8)| ((recv & 0xFF) << 8);
     switch (r_regid)
     {
+        
         case static_cast<uint8_t>(regId::T_MOTOR):
             motor_temp_adc = value_2b;
             break;
@@ -15,7 +23,11 @@ void Inverter::RXCallback()
             inverter_temp_adc = value_2b;
             break;
         case static_cast<uint8_t>(regId::SPEED_ACTUAL):
+            //TODO change 5500 to a constant 
             rpm = *reinterpret_cast<int16_t*>(&value_2b) / 32767.0f * 5500;
+            break;
+        case static_cast<uint8_t> (regId::STATUS):
+
             break;
     }
 };
@@ -64,9 +76,16 @@ void Inverter::RequestRPM(uint8_t freq)
     t_byte_1 = static_cast<uint8_t>(regId::SPEED_ACTUAL);
     Transmission_Msg.EncodeAndSend();
 }
+void Inverter::RequestOutputVoltage(uint8_t freq) 
+{
+    RequestRead(freq);
+    t_byte_1 =  static_cast<uint8_t>(regId::VOUT);
+    Transmission_Msg.EncodeAndSend();
+}
 void Inverter::RequestPowerStageTemp(uint8_t freq)
 {
     RequestRead(freq);
     t_byte_1 = static_cast<uint8_t>(regId::T_IGBT);
     Transmission_Msg.EncodeAndSend();
 }
+

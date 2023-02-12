@@ -40,6 +40,9 @@ public:
     void RequestMotorTemperature(uint8_t freq);
     void RequestPowerStageTemp(uint8_t freq);
     void RequestRPM(uint8_t freq);
+    //Output voltage usage
+    void RequestOutputVoltage(uint8_t freq);
+
 
     /**
      * @brief Sets the register ID to CAN Read, sets frequency byte, and clears other bytes。 Frequency must be values
@@ -68,7 +71,12 @@ private:
         VOUT = 0x8A,
         FUN_ERRCANCEL = 0x8E,
         SPEED_ACTUAL = 0x30,
+        O_BTB = 0xe2,
+        STATUS = 0x40
     };
+    // enum class statusBit : uint16_t {
+        
+    // }
 
     CANSignal<uint8_t, 0, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> t_regid{};
     CANSignal<uint8_t, 8, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> t_byte_1{};
@@ -80,19 +88,10 @@ private:
         can_interface_, kTransmissionId, 5, 100, t_regid, t_byte_1, t_byte_2, t_byte_3, t_byte_4};
 
     CANSignal<uint8_t, 0, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> r_regid{};
-    CANSignal<uint8_t, 8, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> r_byte_1{};
-    CANSignal<uint8_t, 16, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> r_byte_2{};
-    CANSignal<uint8_t, 24, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> r_byte_3{};
-    CANSignal<uint8_t, 32, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> r_byte_4{};
-    CANSignal<uint8_t, 40, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> r_byte_5{};
-
+    CANSignal<uint8_t, 0, 32, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> recv{};
     CANRXMessage<6> Receive_Msg{can_interface_,
                                 kReceiveId,
                                 [this]() { RXCallback(); },
                                 r_regid,
-                                r_byte_1,
-                                r_byte_2,
-                                r_byte_3,
-                                r_byte_4,
-                                r_byte_5};
+                                recv};
 };
