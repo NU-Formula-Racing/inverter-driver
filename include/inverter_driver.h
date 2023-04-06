@@ -7,6 +7,22 @@
 #include <Arduino.h>
 #endif
 
+class Status
+{
+public:
+    bool OK = 0;
+    bool Rdy = 0;
+    bool Ird_TI = 0;
+    bool Ird_TM = 0;
+    enum class bitPos : uint8_t
+    {
+        OK = 4,
+        Rdy = 14,
+        Ird_TI = 23,
+        Ird_TM = 26,
+    };
+};
+
 class IInverter
 {
 public:
@@ -16,7 +32,9 @@ public:
 
     virtual float GetRPM();
 
-    virtual void GetStatus();
+    virtual Status GetStatus();
+
+    virtual uint16_t GetRequestedTorque();
 
     virtual void RequestTorque(uint16_t percent);
 };
@@ -33,13 +51,15 @@ public:
     float GetMotorTemperature() override;
     float GetInverterTemperature() override;
     float GetRPM() override;
-    void GetStatus() override;
+    Status GetStatus() override;
+    uint16_t GetRequestedTorque() override;
     // set vals
     void RequestTorque(uint16_t percent) override;
     void RXCallback();
     void RequestMotorTemperature(uint8_t freq);
     void RequestPowerStageTemp(uint8_t freq);
     void RequestRPM(uint8_t freq);
+    void RequestStatus(uint8_t freq);
 
     /**
      * @brief Sets the register ID to CAN Read, sets frequency byte, and clears other bytes。 Frequency must be values
@@ -53,7 +73,11 @@ private:
     uint16_t motor_temp_adc;
     uint16_t inverter_temp_adc;
     float rpm;
+    Status status;
+    uint16_t torque_percent;
     ICAN &can_interface_;
+    const float kTorqueLimit =
+        200;  // set to 200 for testing purposes only, should be 32767 to achieve maximum torque at 100%
     // CAN addresses
     const uint16_t kTransmissionId = 0x201;
     const uint16_t kReceiveId = 0x181;
@@ -68,6 +92,8 @@ private:
         VOUT = 0x8A,
         FUN_ERRCANCEL = 0x8E,
         SPEED_ACTUAL = 0x30,
+        TORQUE_OUT = 0xA0,
+        KERN_STATUS = 0x40,
     };
 
     CANSignal<uint8_t, 0, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> t_regid{};
