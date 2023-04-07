@@ -37,7 +37,7 @@ void requestTorque()
     if (millis() / 2000 % 2)
     {
         // Serial.println("Requesting 200 torque");
-        inverter.RequestTorque(0.006);
+        inverter.RequestTorque(100);
     }
     else
     {
@@ -59,6 +59,20 @@ void printEverything()
     Serial.print("RPM:");
     Serial.print(inverter.GetRPM());
     Serial.print("\n");
+
+    Serial.print("Requested torque:");
+    Serial.print(inverter.GetRequestedTorque());
+    Serial.print("\n");
+
+    Serial.print("OK:");
+    Serial.print(inverter.GetStatus().OK);
+    Serial.print(" Rdy:");
+    Serial.print(inverter.GetStatus().Rdy);
+    Serial.print(" Ird_TI:");
+    Serial.print(inverter.GetStatus().Ird_TI);
+    Serial.print(" Ird_TM:");
+    Serial.print(inverter.GetStatus().Ird_TM);
+    Serial.print("\n");
 }
 
 void setup()
@@ -69,6 +83,7 @@ void setup()
     inverter.RequestMotorTemperature(200);
     inverter.RequestPowerStageTemp(200);
     inverter.RequestRPM(200);
+    inverter.RequestStatus(200);
     timer_group.AddTimer(1000, requestTorque);
     timer_group.AddTimer(1000, printEverything);
     timer_group.AddTimer(10, []() { can_bus.Tick(); });
