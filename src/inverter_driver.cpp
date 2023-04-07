@@ -17,6 +17,11 @@ void Inverter::RXCallback()
         case static_cast<uint8_t>(regId::SPEED_ACTUAL):
             rpm = *reinterpret_cast<int16_t*>(&value_2b) / 32767.0f * 5500;
             break;
+        case static_cast<uint8_t>(regId::KERN_STATUS):
+            status.OK = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::OK))) != 0;
+            status.Rdy = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Rdy))) != 0;
+            status.Ird_TI = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Ird_TI))) != 0;
+            status.Ird_TM = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Ird_TM))) != 0;
     }
 };
 
@@ -26,16 +31,14 @@ float Inverter::GetInverterTemperature() { return Inverter_Thermistor().ADCToTem
 
 float Inverter::GetRPM() { return rpm; };
 
-void Inverter::GetStatus()
-{
-    // TODO: implement
-    RequestRead(0);
-    t_byte_1 = 0x40;
-};
+Status Inverter::GetStatus() { return status; };
 
-void Inverter::RequestTorque(float percent)
+uint16_t Inverter::GetRequestedTorque() { return torque_percent; }
+
+void Inverter::RequestTorque(uint16_t percent)
 {
-    int16_t value = percent * 32767;
+    torque_percent = percent;
+    uint16_t value = static_cast<uint16_t>(percent * kTorqueLimit / 100.0f);
     t_byte_1 = (value >> 0) & 0xFF;
     t_byte_2 = (value >> 8) & 0xFF;
     t_byte_3 = 0;
@@ -68,5 +71,11 @@ void Inverter::RequestPowerStageTemp(uint8_t freq)
 {
     RequestRead(freq);
     t_byte_1 = static_cast<uint8_t>(regId::T_IGBT);
+    Transmission_Msg.EncodeAndSend();
+}
+void Inverter::RequestStatus(uint8_t freq)
+{
+    RequestRead(freq);
+    t_byte_1 = static_cast<uint8_t>(regId::KERN_STATUS);
     Transmission_Msg.EncodeAndSend();
 }
