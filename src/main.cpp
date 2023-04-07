@@ -84,6 +84,7 @@ void setup()
     inverter.RequestPowerStageTemp(200);
     inverter.RequestRPM(200);
     inverter.RequestStatus(200);
+    
     timer_group.AddTimer(1000, requestTorque);
     timer_group.AddTimer(1000, printEverything);
     timer_group.AddTimer(10, []() { can_bus.Tick(); });
