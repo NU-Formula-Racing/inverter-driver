@@ -77,7 +77,7 @@ private:
     uint16_t torque_percent;
     ICAN &can_interface_;
     const float kTorqueLimit =
-        200;  // set to 200 for testing purposes only, should be 32767 to achieve maximum torque at 100%
+        32767;  // set to 200 for testing purposes only, should be 32767 to achieve maximum torque at 100%
     // CAN addresses
     const uint16_t kTransmissionId = 0x201;
     const uint16_t kReceiveId = 0x181;
