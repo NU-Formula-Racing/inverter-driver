@@ -2,6 +2,8 @@
 
 #include "temp_converters.h"
 
+void Inverter::Initialize() { can_interface.RegisterRXMessage(Receive_Msg); }
+
 void Inverter::RXCallback()
 {
     uint32_t value_4b = static_cast<uint32_t>(r_byte_1 | r_byte_2 << 8 | r_byte_3 << 16 | r_byte_4 << 24);
@@ -18,10 +20,14 @@ void Inverter::RXCallback()
             rpm = *reinterpret_cast<int16_t*>(&value_2b) / 32767.0f * 5500;
             break;
         case static_cast<uint8_t>(regId::KERN_STATUS):
+            status.En = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::EN))) != 0;
             status.OK = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::OK))) != 0;
             status.Rdy = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Rdy))) != 0;
             status.Ird_TI = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Ird_TI))) != 0;
             status.Ird_TM = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Ird_TM))) != 0;
+            break;
+        case static_cast<uint8_t>(regId::LOGIC_STATUS):
+            logic_status = value_2b;
     }
 };
 
@@ -32,6 +38,8 @@ float Inverter::GetInverterTemperature() { return Inverter_Thermistor().ADCToTem
 float Inverter::GetRPM() { return rpm; };
 
 Status Inverter::GetStatus() { return status; };
+
+uint16_t Inverter::GetLogicStatus() { return logic_status; };
 
 uint16_t Inverter::GetRequestedTorque() { return torque_percent; }
 
@@ -77,5 +85,8 @@ void Inverter::RequestStatus(uint8_t freq)
 {
     RequestRead(freq);
     t_byte_1 = static_cast<uint8_t>(regId::KERN_STATUS);
+    Transmission_Msg.EncodeAndSend();
+
+    t_byte_1 = static_cast<uint8_t>(regId::LOGIC_STATUS);
     Transmission_Msg.EncodeAndSend();
 }
