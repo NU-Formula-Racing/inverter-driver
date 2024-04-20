@@ -42,7 +42,7 @@ public:
 
     virtual uint16_t GetRequestedTorque();
 
-    virtual void RequestTorque(uint16_t percent);
+    virtual void RequestTorque(uint8_t percent);
 };
 
 /**
@@ -52,7 +52,7 @@ public:
 class Inverter : public IInverter
 {
 public:
-    Inverter(ICAN &can_interface_) : can_interface(can_interface_) { Initialize(); };
+    Inverter(ICAN &can_interface_) : can_interface(can_interface_){};
 
     void Initialize() override;
     float GetMotorTemperature() override;
@@ -62,7 +62,7 @@ public:
     uint16_t GetLogicStatus() override;
     uint16_t GetRequestedTorque() override;
     // set vals
-    void RequestTorque(uint16_t percent) override;
+    void RequestTorque(uint8_t percent) override;
     void RXCallback();
     void RequestMotorTemperature(uint8_t freq);
     void RequestPowerStageTemp(uint8_t freq);
@@ -83,10 +83,10 @@ private:
     uint16_t logic_status;
     float rpm;
     Status status;
-    uint16_t torque_percent;
+    uint8_t torque_percent;
     ICAN &can_interface;
-    const float kTorqueLimit =
-        200;  // set to 200 for testing purposes only, should be 32767 to achieve maximum torque at 100%
+    const uint16_t kTorqueLimit =
+        32767;  // set to 200 for testing purposes only, should be 32767 to achieve maximum torque at 100%
     // CAN addresses
     const uint16_t kTransmissionId = 0x201;
     const uint16_t kReceiveId = 0x181;

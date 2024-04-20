@@ -36,8 +36,8 @@ void requestTorque()
 {
     if (millis() / 2000 % 2)
     {
-        // Serial.println("Requesting 200 torque");
-        inverter.RequestTorque(100);
+        // Serial.println("Requesting 1% torque");
+        inverter.RequestTorque(1);
     }
     else
     {
@@ -98,7 +98,7 @@ void setup()
 
     timer_group.AddTimer(1000, requestTorque);
     timer_group.AddTimer(1000, printEverything);
-    timer_group.AddTimer(1000, requestInverterReadings);
+    timer_group.AddTimer(10000, requestInverterReadings);
     timer_group.AddTimer(10, []() { can_bus.Tick(); });
 };
 

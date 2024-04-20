@@ -43,7 +43,7 @@ uint16_t Inverter::GetLogicStatus() { return logic_status; };
 
 uint16_t Inverter::GetRequestedTorque() { return torque_percent; }
 
-void Inverter::RequestTorque(uint16_t percent)
+void Inverter::RequestTorque(uint8_t percent)
 {
     torque_percent = percent;
     uint16_t value = static_cast<uint16_t>(percent * kTorqueLimit / 100.0f);
