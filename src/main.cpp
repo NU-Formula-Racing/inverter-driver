@@ -37,7 +37,7 @@ void requestTorque()
     if (millis() / 2000 % 2)
     {
         // Serial.println("Requesting 1% torque");
-        inverter.RequestTorque(1);
+        inverter.RequestTorque(5);
     }
     else
     {
@@ -94,7 +94,7 @@ void setup()
     Serial.begin(115200);
     Serial.println("Started");
     can_bus.Initialize(ICAN::BaudRate::kBaud1M);
-    inverter.Initialize();
+    inverter.Initialize(25);
 
     timer_group.AddTimer(1000, requestTorque);
     timer_group.AddTimer(1000, printEverything);
