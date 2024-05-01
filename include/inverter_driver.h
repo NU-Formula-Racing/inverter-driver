@@ -28,7 +28,7 @@ public:
 class IInverter
 {
 public:
-    virtual void Initialize() = 0;
+    virtual void Initialize(uint8_t torqueLimit) = 0;
 
     virtual float GetMotorTemperature();
 
@@ -54,7 +54,7 @@ class Inverter : public IInverter
 public:
     Inverter(ICAN &can_interface_) : can_interface(can_interface_){};
 
-    void Initialize() override;
+    void Initialize(uint8_t torqueLimit = 100) override;
     float GetMotorTemperature() override;
     float GetInverterTemperature() override;
     float GetRPM() override;
@@ -90,6 +90,7 @@ private:
     // CAN addresses
     const uint16_t kTransmissionId = 0x201;
     const uint16_t kReceiveId = 0x181;
+    uint8_t sw_torque_limit;
 
     // Register IDs from data sheet
     enum class regId : uint8_t
