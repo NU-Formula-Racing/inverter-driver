@@ -29,14 +29,16 @@ void Inverter::RXCallback()
             rpm = *reinterpret_cast<int16_t*>(&value_2b) / 32767.0f * 5500;
             break;
         case static_cast<uint8_t>(regId::KERN_STATUS):
-            status.En = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::EN))) != 0;
-            status.OK = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::OK))) != 0;
-            status.Rdy = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Rdy))) != 0;
-            status.Ird_TI = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Ird_TI))) != 0;
-            status.Ird_TM = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Ird_TM))) != 0;
+            status.En = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::EN)));
+            status.OK = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::OK)));
+            status.Rdy = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Rdy)));
+            status.Ird_TI = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Ird_TI)));
+            status.Ird_TM = (value_2b & (1 << static_cast<uint8_t>(Status::bitPos::Ird_TM)));
             break;
         case static_cast<uint8_t>(regId::LOGIC_STATUS):
             logic_status = value_2b;
+        case static_cast<uint8_t>(regId::ERROR_STATUS):
+            error_status = value_4b;
     }
 };
 
@@ -74,6 +76,7 @@ Status Inverter::GetStatus() { return status; };
  * @return uint16_t
  */
 uint16_t Inverter::GetLogicStatus() { return logic_status; };
+uint32_t Inverter::GetErrorStatus() { return error_status; };
 
 /**
  * @brief Get the requested torque in percent
@@ -87,9 +90,10 @@ uint16_t Inverter::GetRequestedTorque() { return torque_percent; }
  *
  * @param percent
  */
-void Inverter::RequestTorque(uint8_t percent)
+void Inverter::RequestTorque(int16_t percent)
 {
-    uint16_t value = static_cast<uint16_t>(percent * (kTorqueLimit / 100.0f) * (sw_torque_limit / 100.0f));
+    // uint16_t value = static_cast<uint16_t>(percent * (kTorqueLimit / 100.0f) * (sw_torque_limit / 100.0f));
+    int16_t value = static_cast<int16_t>(percent * (sw_torque_limit / 100.0f));
     torque_percent = value / kTorqueLimit * 100;
     t_byte_1 = (value >> 0) & 0xFF;
     t_byte_2 = (value >> 8) & 0xFF;
@@ -133,5 +137,8 @@ void Inverter::RequestStatus(uint8_t freq)
     Transmission_Msg.EncodeAndSend();
 
     t_byte_1 = static_cast<uint8_t>(regId::LOGIC_STATUS);
+    Transmission_Msg.EncodeAndSend();
+
+    t_byte_1 = static_cast<uint8_t>(regId::ERROR_STATUS);
     Transmission_Msg.EncodeAndSend();
 }

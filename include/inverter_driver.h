@@ -42,7 +42,7 @@ public:
 
     virtual uint16_t GetRequestedTorque();
 
-    virtual void RequestTorque(uint8_t percent);
+    virtual void RequestTorque(int16_t percent);
 };
 
 /**
@@ -61,8 +61,9 @@ public:
     Status GetStatus() override;
     uint16_t GetLogicStatus() override;
     uint16_t GetRequestedTorque() override;
+    uint32_t GetErrorStatus();
     // set vals
-    void RequestTorque(uint8_t percent) override;
+    void RequestTorque(int16_t percent) override;
     void RXCallback();
     void RequestMotorTemperature(uint8_t freq);
     void RequestPowerStageTemp(uint8_t freq);
@@ -81,6 +82,7 @@ private:
     uint16_t motor_temp_adc;
     uint16_t inverter_temp_adc;
     uint16_t logic_status;
+    uint32_t error_status;
     float rpm;
     Status status;
     uint8_t torque_percent;
@@ -88,8 +90,8 @@ private:
     const uint16_t kTorqueLimit =
         32767;  // set to 200 for testing purposes only, should be 32767 to achieve maximum torque at 100%
     // CAN addresses
-    const uint16_t kTransmissionId = 0x201;
-    const uint16_t kReceiveId = 0x181;
+    const uint16_t kTransmissionId = 0x230;
+    const uint16_t kReceiveId = 0x231;
     uint8_t sw_torque_limit;
 
     // Register IDs from data sheet
@@ -105,6 +107,7 @@ private:
         TORQUE_OUT = 0xA0,
         KERN_STATUS = 0x40,
         LOGIC_STATUS = 0xD8,
+        ERROR_STATUS = 0x8F
     };
 
     CANSignal<uint8_t, 0, 8, CANTemplateConvertFloat(1), CANTemplateConvertFloat(0)> t_regid{};
